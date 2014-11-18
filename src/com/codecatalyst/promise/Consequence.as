@@ -205,7 +205,7 @@ class CallbackQueue
 	/**
 	 * Queued Callback(s).
 	 */
-	private const queuedCallbacks:Array = new Array(1e4);
+	private const queuedCallbacks:Vector.<Callback> = new Vector.<Callback>(1e4, true);
 	
 	/**
 	 * Interval identifier.
