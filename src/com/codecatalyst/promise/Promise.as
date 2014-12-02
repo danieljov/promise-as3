@@ -22,7 +22,6 @@
 
 package com.codecatalyst.promise
 {
-	import com.codecatalyst.promise.logger.LogLevel;
 	import com.codecatalyst.util.nextTick;
 	import com.codecatalyst.util.optionally;
 	import com.codecatalyst.util.spread;
@@ -456,29 +455,6 @@ package com.codecatalyst.promise
 			
 			return Promise.when( promisesOrValues ).then( process );
 		}
-		
-		/**
-		 * Logs a message with the specified category, log level and optional 
-		 * parameters via all registered custom logger functions.
-		 * 
-		 * @param category Category
-		 * @param level Log level
-		 * @param message Message
-		 * @param parameters Optional message parameters
-		 *
-		 * @see #registerLogger()
-		 * @see #unregisterLogger()
-		 * @see com.codecatalyst.promise.logger.FlexLogger
-		 * @see com.codecatalyst.promise.logger.TraceLogger
-		 */
-		public static function log( category:String, level:int, message:String, ...parameters ):void
-		{
-			var loggerParameters:Array = [ category, level, message ].concat( parameters );
-			for each ( var logger:Function in loggers )
-			{
-				logger.apply( logger, loggerParameters );
-			}
-		}
 
 		/**
 		 * Registers a custom adapter function capable of adapting values
@@ -523,45 +499,6 @@ package com.codecatalyst.promise
 			}
 		}
 		
-		/**
-		 * Registers a custom logger function capable of logging messages
-		 * with a specified category, log level, and optional parameters.
-		 * 
-		 * @example A custom logger should have the following function signature:
-		 * <listing version="3.0">
-		 * function log( category:String, level:int, message:String, ...parameters ):void {
-		 *    // ...
-		 * }
-		 * </listing>
-		 * 
-		 * @param adapter Custom logger function.
-		 * 
-		 * @see #unregisterLogger()
-		 */
-		public static function registerLogger( logger:Function ):void
-		{
-			if ( loggers.indexOf( logger ) == -1 )
-			{
-				loggers.push( logger );
-			}
-		}
-		
-		/**
-		 * Unregisters a custom logger function.
-		 * 
-		 * @param adapter Previously registered custom logger function.
-		 * 
-		 * @see #registerLogger()
-		 */
-		public static function unregisterLogger( logger:Function ):void
-		{
-			const index:int = loggers.indexOf( logger );
-			if ( index > -1 )
-			{
-				loggers.splice( index, 1 );
-			}
-		}
-		
 		// ========================================
 		// Private static methods
 		// ========================================
@@ -601,11 +538,6 @@ package com.codecatalyst.promise
 		 * Array of registered adapter functions.
 		 */
 		private static const adapters:Array = [];
-		
-		/**
-		 * Array of registered logger functions.
-		 */
-		private static const loggers:Array = [];
 		
 		// ========================================
 		// Private properties
@@ -766,51 +698,5 @@ package com.codecatalyst.promise
 			resolver.reject( new CancellationError( reason ) );
 		}
 		
-		
-		/**
-		 * Logs the resolution or rejection of this Promise with the specified
-		 * category and optional identifier. Messages are logged via all 
-		 * registered custom logger functions.
-		 * 
-		 * @param category Logging category, typically a class name or package.
-		 * @param identifier An optional identifier to incorporate into the resulting log entry.
-		 * 
-		 * @return A new "pass-through" Promise that is resolved with the original value or rejected with the original reason.
-		 * 
-		 * @see #registerLogger()
-		 * @see #unregisterLogger()
-		 * @see com.codecatalyst.promise.logger.FlexLogger
-		 * @see com.codecatalyst.promise.logger.TraceLogger
-		 */
-		public function log( category:String, identifier:String = null ):Promise
-		{
-			function onFulfilled( value:* ):*
-			{
-				try
-				{
-					Promise.log( category, LogLevel.DEBUG, ( identifier || "Promise" ) + " resolved with value: " + value );
-				}
-				catch ( error:Error )
-				{
-					scheduleRethrowError( error );
-				}
-				return value;
-			}
-			
-			function onRejected( reason:* ):*
-			{
-				try
-				{
-					Promise.log( category, LogLevel.ERROR, ( identifier || "Promise" ) + " rejected with reason: " + reason );
-				}
-				catch ( error:Error )
-				{
-					scheduleRethrowError( error );
-				}
-				throw reason;
-			}
-			
-			return resolver.then( onFulfilled, onRejected );
-		}
 	}
 }
