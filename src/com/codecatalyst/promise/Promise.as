@@ -43,27 +43,11 @@ package com.codecatalyst.promise
 		 * immediate value, a Promise, or a foreign Promise (i.e. Promises 
 		 * from another Promises/A implementation).
 		 * 
-		 * Additionally, the specified value can be adapted into a Promise
-		 * through the use of custom adapters.
-		 * 
 		 * @param value An immediate value, a Promise, a foreign Promise or adaptable value.
 		 * @return Promise of the specified value.
-		 * 
-		 * @see #registerAdapter()
-		 * @see #unregisterAdapter()
-		 * @see com.codecatalyst.promise.adapter.AsyncTokenAdapter
 		 */
 		public static function when( value:* ):Promise
 		{
-			for each ( var adapt:Function in adapters )
-			{
-				const promise:Promise = adapt( value ) as Promise;
-				if ( promise )
-				{
-					return promise;
-				}
-			}
-			
 			const deferred:Deferred = new Deferred();
 			deferred.resolve( value );
 			return deferred.promise;
@@ -456,49 +440,6 @@ package com.codecatalyst.promise
 			return Promise.when( promisesOrValues ).then( process );
 		}
 
-		/**
-		 * Registers a custom adapter function capable of adapting values
-		 * passed to <code>Promise.when()</code> into Promises.
-		 * 
-		 * A custom adapter function is called with a candidate value and
-		 * should return either a Promise that adapts that value or null if the
-		 * adapter cannot adapt that value.
-		 * 
-		 * @example A custom adapter should have the following function signature:
-		 * <listing version="3.0">
-		 * function function adapt( value:* ):Promise {
-		 *    // ...
-		 * }
-		 * </listing>
-		 * 
-		 * @param adapter Adapter function.
-		 * 
-		 * @see #unregisterAdapter()
-		 */
-		public static function registerAdapter( adapter:Function ):void
-		{
-			if ( adapters.indexOf( adapter ) == -1 )
-			{
-				adapters.push( adapter );
-			}
-		}
-
-		/**
-		 * Unregisters a custom adapter function.
-		 * 
-		 * @param adapter Previously registered adapter function.
-		 * 
-		 * @see #registerAdapter()
-		 */
-		public static function unregisterAdapter( adapter:Function ):void
-		{
-			const index:int = adapters.indexOf( adapter );
-			if ( index > -1 )
-			{
-				adapters.splice( index, 1 );
-			}
-		}
-		
 		// ========================================
 		// Private static methods
 		// ========================================
@@ -529,15 +470,6 @@ package com.codecatalyst.promise
 				throw error;
 			}
 		}
-		
-		// ========================================
-		// Private static properties
-		// ========================================
-		
-		/**
-		 * Array of registered adapter functions.
-		 */
-		private static const adapters:Array = [];
 		
 		// ========================================
 		// Private properties
